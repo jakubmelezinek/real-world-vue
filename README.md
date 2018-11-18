@@ -1,4 +1,4 @@
-# Vue Mastery Example Event App
+# Vue Mastery Example Event App [Fork in Typescript] 
 
 ## Following along?
 
@@ -29,6 +29,18 @@ To run the mock database
 ```
     $ json-server --watch db.json
 ```
+
+## Intro to Vue Course [in Typescript]
+
+Course: https://www.vuemastery.com/courses/intro-to-vue-js/vue-instance/
+
+To build application
+```
+    $ npm run intro
+```
+
+To run application
+ * access [intro/intro.html](http://htmlpreview.github.io/?https://github.com/jakubmelezinek/real-world-vue/blob/master/intro/intro.html) in browser
 
 ## Real World Vue Course
 
