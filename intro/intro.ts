@@ -1,14 +1,22 @@
 import Vue from 'vue'
+import Component from "vue-class-component";
+import {Prop} from "vue-property-decorator";
 
-var eventBus = new Vue()
 
-Vue.component('product', {
-    props: {
-        premium: {
-            type: Boolean,
-            required: true
-        }
-    },
+let eventBus: Vue = new Vue();
+
+interface IVariant {
+    variantId: number;
+    variantColor: string;
+    variantImage: string;
+    variantQuantity: number;
+}
+
+interface IReview {
+
+}
+
+@Component({
     template: `
      <div class="product">
 
@@ -44,61 +52,62 @@ Vue.component('product', {
 
       </div>
      `,
-    data() {
-        return {
-            product: 'Socks',
-            brand: 'Vue Mastery',
-            selectedVariant: 0,
-            details: ['80% cotton', '20% polyester', 'Gender-neutral'],
-            variants: [
-                {
-                    variantId: 2234,
-                    variantColor: 'green',
-                    variantImage: 'https://dl.dropboxusercontent.com/s/9zccs3f0pimj0wj/vmSocks-green-onWhite.jpg?dl=0',
-                    variantQuantity: 10
-                },
-                {
-                    variantId: 2235,
-                    variantColor: 'blue',
-                    variantImage: 'https://dl.dropboxusercontent.com/s/t32hpz32y7snfna/vmSocks-blue-onWhite.jpg?dl=0',
-                    variantQuantity: 0
-                }
-            ],
-            reviews: []
+})
+class Product extends Vue {
+    @Prop({required: true}) premium: boolean;
+    product: string =  'Socks';
+    brand: string = 'Vue Mastery';
+    selectedVariant: number = 0;
+    details: string[] = ['80% cotton', '20% polyester', 'Gender-neutral'];
+    variants: IVariant[] = [
+        {
+            variantId: 2234,
+            variantColor: 'green',
+            variantImage: 'https://dl.dropboxusercontent.com/s/9zccs3f0pimj0wj/vmSocks-green-onWhite.jpg?dl=0',
+            variantQuantity: 10
+        },
+        {
+            variantId: 2235,
+            variantColor: 'blue',
+            variantImage: 'https://dl.dropboxusercontent.com/s/t32hpz32y7snfna/vmSocks-blue-onWhite.jpg?dl=0',
+            variantQuantity: 0
         }
-    },
-    methods: {
-        addToCart() {
-            (<any>this).$emit('add-to-cart', (<any>this).variants[(<any>this).selectedVariant].variantId)
-        },
-        updateProduct(index) {
-            (<any>this).selectedVariant = index
+        ];
+    reviews: IReview[] = [];
+
+    addToCart() {
+        this.$emit('add-to-cart', this.variants[this.selectedVariant].variantId)
+    }
+
+    updateProduct(index) {
+        this.selectedVariant = index
+    }
+
+    get title() {
+        return this.brand + ' ' + this.product
+    }
+
+    get image(){
+        return this.variants[this.selectedVariant].variantImage
+    }
+
+    get inStock(){
+        return this.variants[this.selectedVariant].variantQuantity
+    }
+
+    get shipping() {
+        if (this.premium) {
+            return "Free"
         }
-    },
-    computed: {
-        title() {
-            return (<any>this).brand + ' ' + (<any>this).product
-        },
-        image(){
-            return (<any>this).variants[(<any>this).selectedVariant].variantImage
-        },
-        inStock(){
-            return (<any>this).variants[(<any>this).selectedVariant].variantQuantity
-        },
-        shipping() {
-            if ((<any>this).premium) {
-                return "Free"
-            }
-            return 2.99
-        }
-    },
+        return 2.99
+    }
+
     mounted() {
-        eventBus.$on('review-submitted', productReview => {
-            (<any>this).reviews.push(productReview)
+        eventBus.$on('review-submitted', (productReview: IReview) => {
+            this.reviews.push(productReview)
         })
     }
-})
-
+}
 
 Vue.component('product-review', {
     template: `
@@ -245,22 +254,21 @@ Vue.component('info-tabs', {
             selectedTab: 'Shipping'
         }
     }
+});
+
+@Component({
+    components: {
+        product: Product
+    }
 })
+class App extends Vue {
+    premium: boolean = true;
+    cart: number[] = [];
 
-
+    updateCart(id: number) {
+        this.cart.push(id);
+    }
+}
 
 console.log("about to instantiate Vue #app");
-var app = new Vue({
-        el: '#app',
-        data: {
-            premium: true,
-            cart: []
-        },
-        methods: {
-            updateCart(id) {
-                (<any>this).cart.push(id)
-            }
-        }
-    })
-
-export default app;
+new App({el: '#app'});
