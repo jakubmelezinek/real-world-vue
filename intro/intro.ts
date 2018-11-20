@@ -13,10 +13,16 @@ interface IVariant {
 }
 
 interface IReview {
-
+    name: string;
+    review: string;
+    rating: string;
 }
 
 @Component({
+    components: {
+        "info-tabs": InfoTabs,
+        "product-tabs": ProductTabs,
+    },
     template: `
      <div class="product">
 
@@ -109,7 +115,7 @@ class Product extends Vue {
     }
 }
 
-Vue.component('product-review', {
+@Component({
     template: `
     <form class="review-form" @submit.prevent="onSubmit">
 
@@ -140,42 +146,36 @@ Vue.component('product-review', {
 
     </form>
     `,
-    data() {
-        return {
-            name: null,
-            review: null,
-            rating: null,
-            errors: []
+})
+class ProductReview extends Vue {
+    name: string = null;
+    review: string = null;
+    rating: string = null;
+    errors: string[] = [];
+
+    onSubmit() {
+        if (this.name && this.review && this.rating) {
+            let productReview: IReview = {
+                name: this.name,
+                review: this.review,
+                rating: this.rating
+            };
+            eventBus.$emit('review-submitted', productReview);
+            this.name = null;
+            this.review = null;
+            this.rating = null;
         }
-    },
-    methods: {
-        onSubmit() {
-            if ((<any>this).name && (<any>this).review && (<any>this).rating) {
-                let productReview = {
-                    name: (<any>this).name,
-                    review: (<any>this).review,
-                    rating: (<any>this).rating
-                }
-                eventBus.$emit('review-submitted', productReview);
-                (<any>this).name = null;
-                (<any>this).review = null;
-                (<any>this).rating = null;
-            }
-            else {
-                if(!(<any>this).name) (<any>this).errors.push("Name required.")
-                if(!(<any>this).review) (<any>this).errors.push("Review required.")
-                if(!(<any>this).rating) (<any>this).errors.push("Rating required.")
-            }
+        else {
+            if(!this.name) this.errors.push("Name required.");
+            if(!this.review) this.errors.push("Review required.");
+            if(!this.rating) this.errors.push("Rating required.");
         }
     }
-})
+}
 
-Vue.component('product-tabs', {
-    props: {
-        reviews: {
-            type: Array,
-            required: false
-        }
+@Component({
+    components: {
+        "product-review": ProductReview
     },
     template: `
       <div>
@@ -206,24 +206,15 @@ Vue.component('product-tabs', {
 
       </div>
     `,
-    data() {
-        return {
-            tabs: ['Reviews', 'Make a Review'],
-            selectedTab: 'Reviews'
-        }
-    }
 })
+class ProductTabs extends Vue {
+    @Prop({required: true}) reviews: IReview[];
+    tabs: string[] = ['Reviews', 'Make a Review'];
+    selectedTab: string = 'Reviews';
+}
 
-Vue.component('info-tabs', {
-    props: {
-        shipping: {
-            required: true
-        },
-        details: {
-            type: Array,
-            required: true
-        }
-    },
+
+@Component({
     template: `
       <div>
 
@@ -248,18 +239,26 @@ Vue.component('info-tabs', {
 
       </div>
     `,
-    data() {
-        return {
-            tabs: ['Shipping', 'Details'],
-            selectedTab: 'Shipping'
-        }
-    }
-});
+})
+class InfoTabs extends Vue{
+    @Prop({required: true}) shipping: string | number;
+    @Prop({required: true}) details: string[];
+    tabs: string[] = ['Shipping', 'Details'];
+    selectedTab: string = 'Shipping';
+}
 
 @Component({
     components: {
         product: Product
-    }
+    },
+    template: `
+    <div>
+      <div class="cart">
+        <p>Cart({{ cart.length }})</p>
+      </div>
+      <product :premium="premium" @add-to-cart="updateCart"></product>
+    </div>
+    `
 })
 class App extends Vue {
     premium: boolean = true;
